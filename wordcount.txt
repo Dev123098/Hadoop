@@ -1,0 +1,271 @@
+💡 Objective:
+Count the occurrences of each word in a given text file using the MapReduce paradigm in Hadoop.
+
+🔧 PREREQUISITES:
+Hadoop Installed & Configured – With HDFS and YARN working.
+
+Java Installed – As Hadoop is Java-based.
+
+Text File – Some plain .txt file with words to test the word count.
+
+🧭 STEP-BY-STEP EXECUTION:
+✅ Step 1: Start Hadoop Cluster
+Start the Hadoop daemons:
+
+bash
+Copy
+Edit
+start-all.sh
+Check if all daemons are running using:
+
+bash
+Copy
+Edit
+jps
+You should see:
+
+NameNode
+
+DataNode
+
+ResourceManager
+
+NodeManager
+
+SecondaryNameNode (optional)
+
+✅ Step 2: Set Hadoop Classpath
+Run the following:
+
+bash
+Copy
+Edit
+mapred classpath
+Copy the output and set it as your CLASSPATH:
+
+bash
+Copy
+Edit
+export CLASSPATH="<paste the output of mapred classpath here>"
+✅ Step 3: Write the Java Program
+Create a file named WordCount.java and paste the full code you provided (Mapper, Reducer, Driver all in one file).
+
+✅ Step 4: Compile the Program
+Compile the Java file:
+
+bash
+Copy
+Edit
+javac -classpath $(hadoop classpath) -d . WordCount.java
+This compiles and places the .class files in the current directory.
+
+✅ Step 5: Create a JAR File
+Make a new directory (say WC1):
+
+bash
+Copy
+Edit
+mkdir WC1
+Move all .class files into this directory:
+
+bash
+Copy
+Edit
+mv *.class WC1/
+Create the JAR file:
+
+bash
+Copy
+Edit
+jar -cvf WC1.jar -C WC1/ .
+✅ Step 6: Prepare the Input File
+Create a text file:
+
+bash
+Copy
+Edit
+nano inputfile.txt
+Add some sample text and save.
+
+Create an HDFS input directory and upload the file:
+
+bash
+Copy
+Edit
+hdfs dfs -mkdir /inputfolder
+hdfs dfs -put inputfile.txt /inputfolder
+✅ Step 7: Run the MapReduce Job
+Run the program using:
+
+bash
+Copy
+Edit
+hadoop jar WC1.jar WordCountDriver /inputfolder /outputfolder
+✅ Step 8: Check Output
+List the output folder:
+
+bash
+Copy
+Edit
+hdfs dfs -ls /outputfolder
+View the result:
+
+bash
+Copy
+Edit
+hdfs dfs -cat /outputfolder/part-r-00000
+✅ RESULT:
+You will see output like:
+
+kotlin
+Copy
+Edit
+Hadoop  2
+is      1
+fun     1
+This indicates how many times each word appeared in the input file.
+
+Would you like help packaging this as a shell script or setting up in a specific environment (e.g., Windows/Linux)?
+
+
+
+
+
+
+
+You said:
+give code
+
+
+ChatGPT said:
+Here’s the complete working Java code for a basic Word Count MapReduce program using Hadoop’s old API (org.apache.hadoop.mapred):
+
+📄 File Name: WordCount.java
+java
+Copy
+Edit
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
+
+// Mapper Class
+public class WordCount {
+
+    public static class WordCountMapper implements Mapper<LongWritable, Text, Text, IntWritable> {
+        private final static IntWritable one = new IntWritable(1);
+        private Text word = new Text();
+
+        @Override
+        public void configure(JobConf job) {
+            // Optional config
+        }
+
+        @Override
+        public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
+                throws IOException {
+            String line = value.toString();
+            StringTokenizer tokenizer = new StringTokenizer(line);
+
+            while (tokenizer.hasMoreTokens()) {
+                word.set(tokenizer.nextToken());
+                output.collect(word, one);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            // Cleanup if needed
+        }
+    }
+
+    // Reducer Class
+    public static class WordCountReducer implements Reducer<Text, IntWritable, Text, IntWritable> {
+        private IntWritable result = new IntWritable();
+
+        @Override
+        public void configure(JobConf job) {
+            // Optional config
+        }
+
+        @Override
+        public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output,
+                Reporter reporter) throws IOException {
+            int sum = 0;
+            while (values.hasNext()) {
+                sum += values.next().get();
+            }
+            result.set(sum);
+            output.collect(key, result);
+        }
+
+        @Override
+        public void close() throws IOException {
+            // Cleanup if needed
+        }
+    }
+
+    // Driver Code
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.err.println("Usage: WordCount <input path> <output path>");
+            System.exit(-1);
+        }
+
+        Configuration conf = new Configuration();
+        JobConf job = new JobConf(conf, WordCount.class);
+        job.setJobName("Word Count");
+
+        job.setMapperClass(WordCountMapper.class);
+        job.setReducerClass(WordCountReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        job.setInputFormat(TextInputFormat.class);
+        job.setOutputFormat(TextOutputFormat.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        JobClient.runJob(job);
+    }
+}
+🛠 Compile and Package
+bash
+Copy
+Edit
+javac -classpath $(hadoop classpath) -d . WordCount.java
+mkdir WC1
+mv WordCount*.class WC1/
+jar -cvf WC1.jar -C WC1/ .
+🚀 Run the Job on Hadoop
+bash
+Copy
+Edit
+# Create input file and put into HDFS
+nano inputfile.txt
+hdfs dfs -mkdir /inputfolder
+hdfs dfs -put inputfile.txt /inputfolder
+
+# Run job
+hadoop jar WC1.jar WordCount /inputfolder /outputfolder
+
+# View result
+hdfs dfs -cat /outputfolder/part-r-00000
+Let me know if you need a version using the new MapReduce API (org.apache.hadoop.mapreduce) or a shell script to automate all steps.
