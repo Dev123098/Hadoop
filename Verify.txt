@@ -1,0 +1,24 @@
+- start-all.sh
+- jps
+- ---------
+
+- hdfs dfs -ls /
+- hdfs dfs -mkdir /csbs
+- hdfs dfs -ls /
+  Found 1 items
+  drwxr-xr-x   - lorem supergroup          0 2025-04-25 12:51 /csbs
+- hdfs dfs -rmdir /csbs
+- nano example.txt
+- hdfs dfs -mkdir /folder
+- hdfs dfs -put example.txt /folder
+- hdfs dfs -cat /folder/example.txt
+  hello
+- hdfs dfs -ls /folder
+  Found 1 items
+  -rw-r--r--   1 lorem supergroup          6 2025-04-25 12:53 /folder/example.txt
+- hdfs dfs -rm /folder/example.txt
+  Deleted /folder/example.txt
+- hdfs dfs -ls /folder
+
+- ----------
+- stop-all.sh
