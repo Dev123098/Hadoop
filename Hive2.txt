@@ -1,0 +1,151 @@
+Here's a comprehensive guide to install and set up Apache Hive on a system where Hadoop is already installed and configured:
+
+
+---
+
+✅ Prerequisites
+
+1. Java (version 8 recommended)
+
+
+2. Hadoop (HDFS and YARN setup)
+
+
+3. SSH configured (for Hadoop pseudo-distributed or distributed setup)
+
+
+4. MySQL / PostgreSQL (optional for production metastore)
+
+
+
+
+---
+
+📥 Step 1: Download and Extract Hive
+
+# Go to Apache Hive download page or use wget
+wget https://downloads.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz
+
+# Extract the archive
+tar -xzvf apache-hive-3.1.3-bin.tar.gz
+
+# Move to /opt or any preferred directory
+sudo mv apache-hive-3.1.3-bin /opt/hive
+
+
+---
+
+⚙️ Step 2: Set Environment Variables
+
+Edit your .bashrc or .zshrc:
+
+export HIVE_HOME=/opt/hive
+export PATH=$PATH:$HIVE_HOME/bin
+export HADOOP_HOME=/opt/hadoop  # adjust if different
+export PATH=$PATH:$HADOOP_HOME/bin
+
+Then run:
+
+source ~/.bashrc
+
+
+---
+
+🗃️ Step 3: Configure Hive (hive-site.xml)
+
+Go to $HIVE_HOME/conf/ and:
+
+cp hive-default.xml.template hive-site.xml
+
+Edit hive-site.xml:
+
+<configuration>
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:derby:;databaseName=metastore_db;create=true</value>
+    <description>JDBC connect string for a JDBC metastore</description>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionUserName</name>
+    <value>hive</value>
+  </property>
+
+  <property>
+    <name>javax.jdo.option.ConnectionPassword</name>
+    <value>hive</value>
+  </property>
+</configuration>
+
+🔹 This setup uses Derby (default embedded DB) for testing. For production, configure with MySQL/PostgreSQL.
+
+
+---
+
+🛠️ Step 4: Initialize the Metastore
+
+schematool -dbType derby -initSchema
+
+If using MySQL/PostgreSQL, replace -dbType derby with mysql or postgres.
+
+
+---
+
+▶️ Step 5: Start Hive CLI or Beeline
+
+# Start Hive CLI
+hive
+
+# Or use Beeline (recommended for production)
+beeline -u jdbc:hive2://localhost:10000
+
+
+---
+
+📂 Step 6: Sample Hive Command
+
+CREATE DATABASE test_db;
+USE test_db;
+CREATE TABLE test_table (id INT, name STRING);
+INSERT INTO test_table VALUES (1, 'Kishor'), (2, 'Hive Setup');
+SELECT * FROM test_table;
+
+
+---
+
+🔐 Optional: Use MySQL for Metastore
+
+1. Install MySQL and create a database:
+
+
+
+CREATE DATABASE metastore;
+CREATE USER 'hive'@'localhost' IDENTIFIED BY 'hivepassword';
+GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@'localhost';
+
+2. Download MySQL JDBC driver and place it in $HIVE_HOME/lib/
+
+
+3. Update hive-site.xml JDBC section accordingly.
+
+
+
+
+---
+
+✅ Verify Setup
+
+hive --version
+
+Check Hive logs in /tmp/$USER if you face issues.
+
+
+---
+
+Would you like a script to automate the entire process or help configuring with MySQL/PostgreSQL for a production setup?
+
