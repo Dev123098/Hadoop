@@ -1,0 +1,216 @@
+✅ AIM
+To install Hive, configure necessary files, and practice HQL queries on a Hadoop ecosystem.
+
+⚙️ PREREQUISITES
+Ensure you have Hadoop installed and configured before beginning with Hive. Hive sits on top of Hadoop and interacts with HDFS.
+
+🔧 INSTALLATION & CONFIGURATION
+🔹 Step 1: Update Packages
+bash
+Copy
+Edit
+sudo apt update
+Updates the list of available packages and their versions.
+
+🔹 Step 2: Install Java
+bash
+Copy
+Edit
+sudo apt install openjdk-8-jdk
+Hive requires Java 8 to run properly.
+
+🔹 Step 3: Set Java Version
+bash
+Copy
+Edit
+sudo update-alternatives --config java
+Choose Java 8 if multiple Java versions are installed.
+
+🔹 Step 4: Configure Hadoop to Use Java
+bash
+Copy
+Edit
+nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+Find the line with export JAVA_HOME and update it to:
+
+bash
+Copy
+Edit
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+🔹 Step 5: Set Environment Variables
+bash
+Copy
+Edit
+nano ~/.bashrc
+Add the following (update paths based on your setup):
+
+bash
+Copy
+Edit
+export HIVE_HOME=~/hive/apache-hive-3.1.2-bin
+export PATH=$PATH:$HIVE_HOME/bin
+Then activate:
+
+bash
+Copy
+Edit
+source ~/.bashrc
+🔹 Step 6: Download & Extract Hive
+bash
+Copy
+Edit
+wget https://apache.root.lu/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz
+tar -xvzf apache-hive-3.1.2-bin.tar.gz
+This downloads Hive and extracts it.
+
+🔹 Step 7: Start Hadoop & Set Hive Directories
+Start Hadoop:
+
+bash
+Copy
+Edit
+start-all.sh
+jps  # To check all daemons are running
+Create required HDFS directories:
+
+bash
+Copy
+Edit
+hdfs dfs -mkdir /tmp
+hdfs dfs -chmod g+w /tmp
+hdfs dfs -mkdir -p /user/hive/warehouse
+hdfs dfs -chmod g+w /user/hive/warehouse
+Create local directories:
+
+bash
+Copy
+Edit
+mkdir -p ~/metastore_db
+chmod 777 ~/metastore_db
+🔹 Step 8: Refresh Environment
+bash
+Copy
+Edit
+nano ~/.bashrc
+Ensure it contains your updated environment variables, then:
+
+bash
+Copy
+Edit
+source ~/.bashrc
+🔹 Step 9: Check hive-config.sh
+bash
+Copy
+Edit
+nano $HIVE_HOME/bin/hive-config.sh
+Usually, no major edits are needed unless you have advanced settings.
+
+🔹 Step 10: Create Hive Site Configuration
+bash
+Copy
+Edit
+cd $HIVE_HOME/conf
+cp hive-default.xml.template hive-site.xml
+nano hive-site.xml
+Find all occurrences of:
+
+pgsql
+Copy
+Edit
+${system:java.io.tmpdir}/${system:user.name}
+Replace them with:
+
+bash
+Copy
+Edit
+/tmp/hive
+🔹 Step 11: Update System Profile (Optional)
+bash
+Copy
+Edit
+sudo nano /etc/profile
+Add:
+
+bash
+Copy
+Edit
+export HIVE_HOME=~/hive/apache-hive-3.1.2-bin
+export PATH=$PATH:$HIVE_HOME/bin
+Then:
+
+bash
+Copy
+Edit
+source /etc/profile
+🔹 Step 12: Initialize Hive Metastore
+If metastore_db and derby.log exist:
+
+bash
+Copy
+Edit
+rm -rf metastore_db
+rm -f derby.log
+Then initialize schema:
+
+bash
+Copy
+Edit
+$HIVE_HOME/bin/schematool -dbType derby -initSchema --verbose
+🔹 Step 13: Start Hive Shell
+bash
+Copy
+Edit
+hive
+You should see the Hive prompt:
+
+sql
+Copy
+Edit
+hive>
+📘 PRACTICE EXAMPLES (HQL)
+🔸 Step 1: Create a Table
+sql
+Copy
+Edit
+CREATE TABLE students (
+  id INT,
+  name STRING,
+  age INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+🔸 Step 2: Create a CSV File
+Create students.csv:
+
+Copy
+Edit
+1,John,21
+2,Alice,22
+3,Bob,20
+🔸 Step 3: Move File to HDFS
+bash
+Copy
+Edit
+hdfs dfs -mkdir /user/hive/warehouse/input
+hdfs dfs -put students.csv /user/hive/warehouse/input/
+🔸 Step 4: Load Data into Table
+sql
+Copy
+Edit
+LOAD DATA INPATH '/user/hive/warehouse/input/students.csv' INTO TABLE students;
+🔸 Step 5: Query the Table
+sql
+Copy
+Edit
+SELECT * FROM students;
+SELECT COUNT(*) FROM students;
+SELECT * FROM students WHERE age > 20;
+✅ RESULT
+You have now:
+
+Installed Apache Hive.
+
+Configured environment and Hive settings.
+
+Created and queried a Hive table using HQL.

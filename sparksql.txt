@@ -1,0 +1,189 @@
+🧪 Experiment No. 7
+🎯 AIM:
+To practice importing and exporting data from MySQL to Hive using Apache Spark.
+
+🧱 PREREQUISITES:
+Apache Spark 3.x
+
+MySQL Server with sample database and table
+
+Hive Metastore configured
+
+JDBC driver (mysql-connector-java-x.xx.xx.jar)
+
+Spark-Hive integration (using spark-shell)
+
+📝 STEP-BY-STEP EXECUTION:
+🔧 Step 1: Install Apache Spark
+bash
+Copy
+Edit
+wget https://downloads.apache.org/spark/spark-3.4.1/spark-3.4.1-bin-hadoop3.tgz
+tar -xvzf spark-3.4.1-bin-hadoop3.tgz
+mv spark-3.4.1-bin-hadoop3 ~/spark
+⚙️ Step 2: Configure Environment Variables
+Edit your ~/.bashrc file:
+
+bash
+Copy
+Edit
+nano ~/.bashrc
+Add or verify these lines:
+
+bash
+Copy
+Edit
+# Spark
+export SPARK_HOME=~/spark
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+
+# Hadoop (change path if installed elsewhere)
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=$PATH:$HADOOP_HOME/bin
+
+# Hive
+export HIVE_HOME=/usr/lib/hive
+export PATH=$PATH:$HIVE_HOME/bin
+Apply changes:
+
+bash
+Copy
+Edit
+source ~/.bashrc
+🛠️ Step 3: Configure Spark to Use Hive
+bash
+Copy
+Edit
+cp $SPARK_HOME/conf/spark-defaults.conf.template $SPARK_HOME/conf/spark-defaults.conf
+nano $SPARK_HOME/conf/spark-defaults.conf
+Add the following line:
+
+text
+Copy
+Edit
+spark.sql.catalogImplementation hive
+Copy hive-site.xml into Spark config directory:
+
+bash
+Copy
+Edit
+cp $HIVE_HOME/conf/hive-site.xml $SPARK_HOME/conf/
+🗃️ Step 4: Set Up MySQL and Create Sample Table
+Install MySQL Server:
+
+bash
+Copy
+Edit
+sudo apt install mysql-server
+Log into MySQL as root:
+
+bash
+Copy
+Edit
+sudo mysql -u root -p
+Run the following SQL commands:
+
+sql
+Copy
+Edit
+CREATE USER 'sparkuser'@'localhost' IDENTIFIED BY 'sparkpass';
+CREATE DATABASE sparkdb;
+GRANT ALL PRIVILEGES ON sparkdb.* TO 'sparkuser'@'localhost';
+FLUSH PRIVILEGES;
+
+USE sparkdb;
+
+CREATE TABLE Emp(Name VARCHAR(15), salary INT);
+INSERT INTO Emp VALUES('Alice', 3000);
+INSERT INTO Emp VALUES('Bob', 2000);
+Exit MySQL:
+
+sql
+Copy
+Edit
+exit
+📦 Step 5: Set Up MySQL Connector in Spark
+Download MySQL connector:
+
+bash
+Copy
+Edit
+wget https://downloads.mysql.com/archives/get/p/3/file/mysql-connector-java-5.1.49.tar.gz
+tar -xvzf mysql-connector-java-5.1.49.tar.gz
+Copy the JAR file into Spark:
+
+bash
+Copy
+Edit
+mkdir -p $SPARK_HOME/jars
+cp mysql-connector-java-5.1.49/mysql-connector-java-5.1.49-bin.jar $SPARK_HOME/jars/
+🚀 Step 6: Start Services and Launch Spark Shell
+Start Hadoop and Hive services (if required):
+
+bash
+Copy
+Edit
+start-all.sh
+jps  # to verify services are running
+Launch Spark shell with MySQL JDBC JAR:
+
+bash
+Copy
+Edit
+spark-shell --jars $SPARK_HOME/jars/mysql-connector-java-5.1.49-bin.jar
+💻 Step 7: Read MySQL Data and Write to Hive
+In the spark-shell, run:
+
+scala
+Copy
+Edit
+val df = spark.read.format("jdbc")
+  .option("url", "jdbc:mysql://localhost:3306/sparkdb")
+  .option("driver", "com.mysql.jdbc.Driver")
+  .option("dbtable", "Emp")
+  .option("user", "sparkuser")
+  .option("password", "sparkpass")
+  .load()
+
+df.show()
+✅ This should display:
+
+pgsql
+Copy
+Edit
++-----+------+
+| Name|salary|
++-----+------+
+|Alice|  3000|
+|  Bob|  2000|
++-----+------+
+Now write the data into Hive:
+
+scala
+Copy
+Edit
+df.write.mode("overwrite")
+  .option("path", "/user/hive/warehouse/testtable1")
+  .saveAsTable("testtable1")
+Exit Spark shell:
+
+scala
+Copy
+Edit
+:quit
+🔍 Step 8: Verify in Hive
+Launch Hive:
+
+bash
+Copy
+Edit
+hive
+Check if the table was imported:
+
+sql
+Copy
+Edit
+SHOW TABLES;
+SELECT * FROM testtable1;
+✅ RESULT:
+You have successfully imported data from MySQL and exported it into a Hive table using Apache Spark.
