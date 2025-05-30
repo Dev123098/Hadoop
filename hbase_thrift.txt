@@ -1,80 +1,22 @@
-🔧 AIM
-Install Apache HBase and Apache Thrift, configure them, and run simple operations (create, insert, retrieve data) on HBase using the Thrift client interface.
 
-✅ PREREQUISITES
-Before starting, make sure the following are installed on your system:
-
-Linux/Ubuntu
-
-Java 8 or 11 (java -version)
-
-Hadoop (HBase depends on it)
-
-📝 PROCEDURE
-Step 1: Check Java Version
-Check if Java is installed and confirm the version.
-
-bash
-Copy
-Edit
 java -version
-Ensure the version is Java 8 or Java 11.
 
-Step 2: Download and Extract HBase
-Download the binary release of HBase (version 2.5.11).
-
-bash
-Copy
-Edit
 wget https://dlcdn.apache.org/hbase/2.5.11/hbase-2.5.11-bin.tar.gz
 tar xvf hbase-2.5.11-bin.tar.gz
-Step 3: Configure hbase-env.sh
-Edit the HBase environment configuration file:
 
-bash
-Copy
-Edit
 nano hbase-2.5.11/conf/hbase-env.sh
-Add or update the following line:
 
-bash
-Copy
-Edit
 export JAVA_HOME=/path/to/your/java
-Replace /path/to/your/java with your actual Java installation path (e.g., /usr/lib/jvm/java-8-openjdk-amd64).
 
-Step 4: Configure Bash Profile
-Add environment variables to your shell profile:
-
-bash
-Copy
-Edit
 nano ~/.bashrc
-Add:
 
-bash
-Copy
-Edit
 export HBASE_HOME=~/hbase-2.5.11
 export PATH=$PATH:$HBASE_HOME/bin
-Then activate the changes:
 
-bash
-Copy
-Edit
 source ~/.bashrc
-Step 5: Configure hbase-site.xml
-Edit the HBase configuration file:
 
-bash
-Copy
-Edit
 nano hbase-2.5.11/conf/hbase-site.xml
-Add the minimal configuration inside the <configuration> tag:
 
-xml
-Copy
-Edit
 <configuration>
   <property>
     <name>hbase.rootdir</name>
@@ -83,71 +25,27 @@ Edit
 </configuration>
 Replace /home/youruser/ with your actual home directory path.
 
-Step 6: Set Hosts File
-Edit the /etc/hosts file:
 
-bash
-Copy
-Edit
 sudo nano /etc/hosts
-Make sure the second line contains:
 
-bash
-Copy
-Edit
 127.0.0.1   localhost
-Step 7: Start HBase
-Navigate to HBase's bin directory and start the HBase service:
 
-bash
-Copy
-Edit
 cd hbase-2.5.11/bin
 ./start-hbase.sh
-Check running Java processes:
 
-bash
-Copy
-Edit
 jps
-You should see HMaster and HRegionServer listed.
 
-Open the HBase shell:
-
-bash
-Copy
-Edit
 ./hbase shell
-📘 Practice Examples Using HBase Shell
-Step 1: Create a Table
-bash
-Copy
-Edit
-create 'students', 'info', 'marks'
-This creates a table named students with two column families: info and marks.
 
-Step 2: Insert Data
-bash
-Copy
-Edit
+create 'students', 'info', 'marks'
+
 put 'students', 'row1', 'info:name', 'Alice'
 put 'students', 'row1', 'marks:math', '85'
-Step 3: Scan the Table
-bash
-Copy
-Edit
+
 scan 'students'
-Step 4: Retrieve and Modify Data
-bash
-Copy
-Edit
+
 get 'students', 'row1'
 put 'students', 'row1', 'marks:math', '90'  # Update marks
-Step 5: Delete Data
-bash
-Copy
-Edit
+
 delete 'students', 'row1', 'marks:math'   # Delete specific column
 deleteall 'students', 'row1'              # Delete entire row
-✅ RESULT
-The installation of HBase and Thrift, along with practice examples, was successfully completed and verified through HBase shell operations.
